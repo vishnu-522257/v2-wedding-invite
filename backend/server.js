@@ -1,80 +1,107 @@
-// backend/server.js
-
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 1️⃣ Configure CORS to allow your GitHub Pages origin
-//    and to include the x-access-key header in preflight responses.
+// Configure CORS with specific options
 const corsOptions = {
-  origin: [ 
-    'https://uday-sv.github.io',       // your GH Pages URL
-    'https://vishnu-522257.github.io'  // (remove if not needed)
-  ],
+  origin: '*', // Allow all origins
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'x-access-key'    // <-- allow this custom header through CORS
-  ],
-  // if you ever need to send cookies/auth, you can add:
-  // credentials: true
+  allowedHeaders: ['Content-Type', 'x-access-key', 'x-requested-with', 'Authorization'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
+// Apply CORS middleware with our options
 app.use(cors(corsOptions));
-// Ensure OPTIONS preflight is handled
-app.options('*', cors(corsOptions));
-
 app.use(express.json());
 
-// Health check
+// Add middleware to set a valid Permissions-Policy header
+app.use((req, res, next) => {
+  // Set a Permissions-Policy with only recognized features
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(self), fullscreen=(self)'
+  );
+  next();
+});
+
+// Health check endpoint
 app.get('/', (req, res) => {
   res.send('Wedding Invitation Backend is running');
 });
 
-// 2️⃣ Config endpoint (v2)
-//    If you want to serve /api/v2/config exactly like Undangan’s default:
+// Config endpoint
 app.get('/api/v2/config', (req, res) => {
   res.json({
-    app_name:    'Wedding Invitation',
-    app_version: '1.0.0',
-    api_version: 'v2',
-    status:      'success'
+    app_name: "Wedding Invitation",
+    app_version: "1.0.0",
+    api_version: "v2",
+    status: "success"
   });
 });
 
-// 3️⃣ Comments endpoints
+// Get all comments
 app.get('/api/comments', async (req, res) => {
   try {
     const comments = await db.getComments();
     res.json(comments);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    console.error('Error getting comments:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
+// Add a new comment
 app.post('/api/comments', async (req, res) => {
-  // Optional: verify x-access-key here if you’d like:
-  const clientKey = req.header('x-access-key');
-  if (clientKey !== process.env.API_KEY) {
-    return res.status(401).json({ message: 'Invalid API key' });
-  }
-
-  const { name, message } = req.body;
-  if (!name || !message) {
-    return res.status(400).json({ message: 'Name & message required' });
-  }
-
   try {
+    const { name, message } = req.body;
+    if (!name || !message) {
+      return res.status(400).json({ message: 'Name and message are required' });
+    }
     const newComment = await db.addComment(name, message);
     res.status(201).json(newComment);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Handle RSVP endpoints (even though you're not using them, the frontend might request them)
+app.get('/api/v2/rsvp', (req, res) => {
+  res.json({ status: "success", data: [] });
+});
+
+app.post('/api/v2/rsvp', (req, res) => {
+  res.json({ status: "success", message: "RSVP feature is disabled" });
+});
+
+// Handle other potential API endpoints that the frontend might request
+app.get('/api/v2/comments', async (req, res) => {
+  try {
+    const comments = await db.getComments();
+    res.json({ status: "success", data: comments });
+  } catch (error) {
+    console.error('Error getting comments:', error);
+    res.status(500).json({ status: "error", message: error.message });
+  }
+});
+
+app.post('/api/v2/comments', async (req, res) => {
+  try {
+    const { name, message } = req.body;
+    if (!name || !message) {
+      return res.status(400).json({ status: "error", message: 'Name and message are required' });
+    }
+    const newComment = await db.addComment(name, message);
+    res.status(201).json({ status: "success", data: newComment });
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ status: "error", message: error.message });
   }
 });
 
