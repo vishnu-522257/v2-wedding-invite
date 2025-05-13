@@ -6,8 +6,17 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// Enable CORS for all routes
+app.use(cors({
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST']
+}));
 app.use(express.json());
+
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.send('Wedding Invitation Backend is running');
+});
 
 // Get all comments
 app.get('/api/comments', async (req, res) => {
@@ -15,6 +24,7 @@ app.get('/api/comments', async (req, res) => {
     const comments = await db.getComments();
     res.json(comments);
   } catch (error) {
+    console.error('Error getting comments:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -29,6 +39,7 @@ app.post('/api/comments', async (req, res) => {
     const newComment = await db.addComment(name, message);
     res.status(201).json(newComment);
   } catch (error) {
+    console.error('Error adding comment:', error);
     res.status(500).json({ message: error.message });
   }
 });
