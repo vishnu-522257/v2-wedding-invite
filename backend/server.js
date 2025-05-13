@@ -6,16 +6,33 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable CORS for all routes
-app.use(cors({
+// Configure CORS with specific options
+const corsOptions = {
   origin: '*', // Allow all origins
-  methods: ['GET', 'POST']
-}));
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'x-access-key', 'x-requested-with', 'Authorization'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+// Apply CORS middleware with our options
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Health check endpoint
 app.get('/', (req, res) => {
   res.send('Wedding Invitation Backend is running');
+});
+
+// Config endpoint
+app.get('/api/v2/config', (req, res) => {
+  res.json({
+    app_name: "Wedding Invitation",
+    app_version: "1.0.0",
+    api_version: "v2",
+    status: "success"
+  });
 });
 
 // Get all comments
