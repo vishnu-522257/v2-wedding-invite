@@ -12,7 +12,7 @@ import { request, defaultJSON, HTTP_GET, HTTP_POST, HTTP_DELETE, HTTP_PUT, HTTP_
 export const comment = (() => {
 
     // Add a secret marker for filtering comments
-    const TAG = '[[USVLTS]]';
+    const TAG = '__uSvLts__';
 
     /**
      * @type {ReturnType<typeof storage>|null}
