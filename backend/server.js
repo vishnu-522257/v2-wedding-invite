@@ -35,13 +35,24 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// Config endpoint - matches the original API
+// Updated config endpoint with all required properties
 app.get('/api/v2/config', (req, res) => {
   res.json({
     app_name: "Wedding Invitation",
     app_version: "1.0.0",
     api_version: "v2",
-    status: "success"
+    status: "success",
+    // Add these properties that the frontend expects
+    tenor_key: "AIzaSyCWNPjm1GgTZ1GwjP3nXcVBMQCQNDt51Yw", // Public Tenor API key
+    can_reply: true,
+    can_edit: true,
+    can_delete: true,
+    tz: "Asia/Kolkata", // Set to your timezone
+    locale: "en",
+    url: "https://wedding-invite-ll7a.onrender.com",
+    comment_url: "https://wedding-invite-ll7a.onrender.com/api/comments",
+    greeting_url: "https://wedding-invite-ll7a.onrender.com/api/comments",
+    comment_key: "bfb9cfea33ab7ae21a315fbd6f065a815d3e20ff2f007aa2ca"
   });
 });
 
@@ -51,19 +62,50 @@ app.get('/api/config', (req, res) => {
     app_name: "Wedding Invitation",
     app_version: "1.0.0",
     api_version: "v2",
-    status: "success"
+    status: "success",
+    tenor_key: "AIzaSyCWNPjm1GgTZ1GwjP3nXcVBMQCQNDt51Yw",
+    can_reply: true,
+    can_edit: true,
+    can_delete: true,
+    tz: "Asia/Kolkata",
+    locale: "en",
+    url: "https://wedding-invite-ll7a.onrender.com",
+    comment_url: "https://wedding-invite-ll7a.onrender.com/api/comments",
+    greeting_url: "https://wedding-invite-ll7a.onrender.com/api/comments",
+    comment_key: "bfb9cfea33ab7ae21a315fbd6f065a815d3e20ff2f007aa2ca"
   });
 });
 
-// Wedding config endpoint
-app.get('/api/wedding-config', (req, res) => {
+// Wedding data endpoint
+app.get('/api/wedding', (req, res) => {
   res.json({
     title: "Our Wedding",
-    bride: "Bride Name",
-    groom: "Groom Name",
-    date: "2024-01-01",
-    time: "09:30:00",
-    venue: "Wedding Venue",
+    couple: {
+      male: {
+        name: "Groom Name",
+        fullname: "Groom Full Name",
+        father: "Father of Groom",
+        mother: "Mother of Groom",
+        image: "./assets/images/cowo.webp"
+      },
+      female: {
+        name: "Bride Name",
+        fullname: "Bride Full Name",
+        father: "Father of Bride",
+        mother: "Mother of Bride",
+        image: "./assets/images/cewe.webp"
+      }
+    },
+    date: {
+      akad: "2024-01-01 09:00:00",
+      resepsi: "2024-01-01 10:00:00",
+      countdown: "2024-01-01 09:30:00"
+    },
+    venue: {
+      akad: "Wedding Venue",
+      resepsi: "Wedding Venue",
+      map: "https://maps.google.com"
+    },
     status: "success"
   });
 });
