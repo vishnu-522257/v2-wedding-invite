@@ -6,9 +6,6 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Add debug comment on startup
-db.addDebugComment();
-
 // Configure CORS
 app.use(cors({
   origin: '*',
@@ -22,6 +19,20 @@ app.use(express.json());
 // Health check endpoint
 app.get('/', (req, res) => {
   res.send('Wedding Invitation Backend is running');
+});
+
+// Database health check endpoint
+app.get('/health', async (req, res) => {
+  try {
+    const isConnected = await db.validateConnection();
+    if (isConnected) {
+      res.json({ status: 'healthy', database: 'connected' });
+    } else {
+      res.status(503).json({ status: 'unhealthy', database: 'disconnected' });
+    }
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
 });
 
 // Config endpoint - matches the original API
@@ -44,6 +55,19 @@ app.get('/api/config', (req, res) => {
   });
 });
 
+// Wedding config endpoint
+app.get('/api/wedding-config', (req, res) => {
+  res.json({
+    title: "Our Wedding",
+    bride: "Bride Name",
+    groom: "Groom Name",
+    date: "2024-01-01",
+    time: "09:30:00",
+    venue: "Wedding Venue",
+    status: "success"
+  });
+});
+
 // Original v2 API endpoints
 app.get('/api/v2/comment', async (req, res) => {
   try {
@@ -61,7 +85,10 @@ app.get('/api/v2/comment', async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting comments:', error);
-    res.status(500).json({ status: "error", message: error.message });
+    res.status(500).json({ 
+      status: "error", 
+      message: error.message || "Failed to retrieve comments" 
+    });
   }
 });
 
@@ -78,7 +105,10 @@ app.post('/api/v2/comment', async (req, res) => {
     });
   } catch (error) {
     console.error('Error adding comment:', error);
-    res.status(500).json({ status: "error", message: error.message });
+    res.status(500).json({ 
+      status: "error", 
+      message: error.message || "Failed to add comment" 
+    });
   }
 });
 
@@ -99,7 +129,10 @@ app.get('/api/v2/greeting', async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting greetings:', error);
-    res.status(500).json({ status: "error", message: error.message });
+    res.status(500).json({ 
+      status: "error", 
+      message: error.message || "Failed to retrieve greetings" 
+    });
   }
 });
 
@@ -116,7 +149,10 @@ app.post('/api/v2/greeting', async (req, res) => {
     });
   } catch (error) {
     console.error('Error adding greeting:', error);
-    res.status(500).json({ status: "error", message: error.message });
+    res.status(500).json({ 
+      status: "error", 
+      message: error.message || "Failed to add greeting" 
+    });
   }
 });
 
@@ -139,7 +175,7 @@ app.get('/api/comments', async (req, res) => {
     res.json(comments);
   } catch (error) {
     console.error('Error getting comments:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message || "Failed to retrieve comments" });
   }
 });
 
@@ -154,18 +190,18 @@ app.post('/api/comments', async (req, res) => {
     res.status(201).json(newComment);
   } catch (error) {
     console.error('Error adding comment:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message || "Failed to add comment" });
   }
 });
 
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
-  
+
   if (res.headersSent) {
     return next(err);
   }
-  
+
   res.status(err.statusCode || 500).json({
     status: "error",
     message: err.message || "Internal Server Error",
@@ -177,18 +213,3 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-
-// Add this to your server.js
-app.get('/api/wedding-config', (req, res) => {
-  res.json({
-    title: "Our Wedding",
-    bride: "Bride Name",
-    groom: "Groom Name",
-    date: "2024-01-01",
-    time: "09:30:00",
-    venue: "Wedding Venue",
-    status: "success"
-  });
-});
-
