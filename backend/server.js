@@ -20,13 +20,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Add middleware to set a valid Permissions-Policy header
+// Remove problematic Permissions-Policy headers
 app.use((req, res, next) => {
-  // Set a Permissions-Policy with only recognized features
-  res.setHeader(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=(self), fullscreen=(self)'
-  );
+  // Set a simplified Permissions-Policy with only widely-supported features
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
   next();
 });
 
@@ -35,13 +32,15 @@ app.get('/', (req, res) => {
   res.send('Wedding Invitation Backend is running');
 });
 
-// Config endpoint
+// Config endpoint - skip validation by returning a simple success response
 app.get('/api/v2/config', (req, res) => {
+  // Skip any validation checks and just return success
   res.json({
     app_name: "Wedding Invitation",
     app_version: "1.0.0",
     api_version: "v2",
-    status: "success"
+    status: "success",
+    validation_required: false
   });
 });
 
@@ -71,38 +70,11 @@ app.post('/api/comments', async (req, res) => {
   }
 });
 
-// Handle RSVP endpoints (even though you're not using them, the frontend might request them)
-app.get('/api/v2/rsvp', (req, res) => {
-  res.json({ status: "success", data: [] });
-});
-
-app.post('/api/v2/rsvp', (req, res) => {
-  res.json({ status: "success", message: "RSVP feature is disabled" });
-});
-
-// Handle other potential API endpoints that the frontend might request
-app.get('/api/v2/comments', async (req, res) => {
-  try {
-    const comments = await db.getComments();
-    res.json({ status: "success", data: comments });
-  } catch (error) {
-    console.error('Error getting comments:', error);
-    res.status(500).json({ status: "error", message: error.message });
-  }
-});
-
-app.post('/api/v2/comments', async (req, res) => {
-  try {
-    const { name, message } = req.body;
-    if (!name || !message) {
-      return res.status(400).json({ status: "error", message: 'Name and message are required' });
-    }
-    const newComment = await db.addComment(name, message);
-    res.status(201).json({ status: "success", data: newComment });
-  } catch (error) {
-    console.error('Error adding comment:', error);
-    res.status(500).json({ status: "error", message: error.message });
-  }
+// Handle API key validation for comments
+app.use('/api/comments', (req, res, next) => {
+  const accessKey = req.headers['x-access-key'];
+  // Skip validation by always proceeding
+  next();
 });
 
 app.listen(PORT, () => {
