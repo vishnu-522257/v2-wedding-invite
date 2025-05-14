@@ -74,35 +74,38 @@
     <!-- Dependencies JS -->
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" integrity="sha256-pQBbLkFHcP1cy0C8IhoSdxlm0CtcH5yJ2ki9jjgR03c=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha256-y3ibfOyBqlgBd+GzwFYQEVOZdNJD06HeDXihongBXKs=" crossorigin="anonymous"></script>
-    <script type="module" src="./js/guest.js">
-        // Add this to your frontend JavaScript
-    fetch('https://wedding-invite-ll7a.onrender.com/api/comments')
-      .then(response => {
-        console.log('Response status:', response.status);
-        return response.json();
-      })
-      .then(data => {
-        console.log('Comments data:', data);
-      })
-      .catch(error => {
-        console.error('Error fetching comments:', error);
-      });
+    <!-- First, import your main guest.js module -->
+    <script type="module" src="./js/guest.js"></script>
     
-    // Also test the config endpoint
-    fetch('https://wedding-invite-ll7a.onrender.com/api/v2/config')
-      .then(response => {
-        console.log('Config response status:', response.status);
-        return response.json();
-      })
-      .then(data => {
-        console.log('Config data:', data);
-      })
-      .catch(error => {
-        console.error('Error fetching config:', error);
-      });
-
-        
+    <!-- Then add your debugging code in a separate script tag -->
+    <script>
+      // Add this to your frontend JavaScript for debugging
+      fetch('https://wedding-invite-ll7a.onrender.com/api/comments')
+        .then(response => {
+          console.log('Response status:', response.status);
+          return response.json();
+        })
+        .then(data => {
+          console.log('Comments data:', data);
+        })
+        .catch(error => {
+          console.error('Error fetching comments:', error);
+        });
+      
+      // Also test the config endpoint
+      fetch('https://wedding-invite-ll7a.onrender.com/api/v2/config')
+        .then(response => {
+          console.log('Config response status:', response.status);
+          return response.json();
+        })
+        .then(data => {
+          console.log('Config data:', data);
+        })
+        .catch(error => {
+          console.error('Error fetching config:', error);
+        });
     </script>
+
 </head>
 
 <!-- If you're not using comments, you can remove the data-key and data-url attributes, and ignore dashboard.html. -->
