@@ -31,7 +31,7 @@ app.get('/api/v2/config', (req, res) => {
   });
 });
 
-// Get all comments
+// Original v2 API endpoints
 app.get('/api/v2/comment', async (req, res) => {
   try {
     const comments = await db.getComments();
@@ -45,7 +45,6 @@ app.get('/api/v2/comment', async (req, res) => {
   }
 });
 
-// Add a new comment
 app.post('/api/v2/comment', async (req, res) => {
   try {
     const { name, message } = req.body;
@@ -91,6 +90,33 @@ app.post('/api/v2/greeting', async (req, res) => {
   } catch (error) {
     console.error('Error adding greeting:', error);
     res.status(500).json({ status: "error", message: error.message });
+  }
+});
+
+// NEW ENDPOINTS to match what the frontend expects
+app.get('/api/comments', async (req, res) => {
+  try {
+    const comments = await db.getComments();
+    // Return just the array of comments, not wrapped in an object
+    res.json(comments);
+  } catch (error) {
+    console.error('Error getting comments:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/comments', async (req, res) => {
+  try {
+    const { name, message } = req.body;
+    if (!name || !message) {
+      return res.status(400).json({ message: 'Name and message are required' });
+    }
+    const newComment = await db.addComment(name, message);
+    // Return just the comment object, not wrapped in a status object
+    res.status(201).json(newComment);
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
