@@ -17,6 +17,23 @@ const pool = mysql.createPool({
   resetConnectionOnError: true
 });
 
+async function validateConnection() {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    await conn.ping();
+    return true;
+  } catch (err) {
+    console.error('Connection validation failed:', err);
+    return false;
+  } finally {
+    if (conn) conn.release();
+  }
+}
+
+module.exports = { getComments, addComment, validateConnection };
+
+
 // Test database connection
 (async () => {
   try {
