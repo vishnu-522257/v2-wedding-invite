@@ -664,6 +664,33 @@
   });
 </script>
 
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Wait a short time to ensure comments are rendered (adjust if needed)
+      setTimeout(function() {
+        const TAG = '[USVLTS]';
+        // Select all comment elements inside #comments
+        const commentContainer = document.getElementById('comments');
+        if (!commentContainer) return;
+        // Adjust the selector below to match your comment element structure
+        const commentDivs = commentContainer.querySelectorAll('.comment, .your-comment-class'); // adjust selector as needed
+    
+        commentDivs.forEach(function(div) {
+          // Find the message text (adjust for your structure)
+          let message = div.innerText || div.textContent;
+          if (!message.startsWith(TAG)) {
+            div.style.display = 'none'; // Hide comments without the tag
+          } else {
+            // Remove the tag from visible comments
+            div.innerHTML = div.innerHTML.replace(TAG, '');
+          }
+        });
+      }, 500); // Adjust delay as needed to match when comments are rendered
+    });
+</script>
+
+
 </body>
 </body>
 
