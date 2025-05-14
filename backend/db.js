@@ -8,8 +8,13 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+  connectionLimit: 5, // Reduced from 10
+  maxIdle: 3, // Limit idle connections
+  idleTimeout: 30000, // 30 seconds
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000, // 10 seconds
+  resetConnectionOnError: true
 });
 
 // Test database connection
@@ -21,10 +26,45 @@ const pool = mysql.createPool({
     
     // Check if comments table exists, create it if not
     await createCommentsTableIfNotExists();
+    
+    // Add debug comment
+    await addDebugComment();
+    
+    // Setup periodic health check
+    setupConnectionHealthCheck();
   } catch (error) {
     console.error('Database connection error:', error);
   }
 })();
+
+// Validate connection before use
+async function validateConnection() {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    await conn.ping();
+    return true;
+  } catch (err) {
+    console.error('Connection validation failed:', err);
+    return false;
+  } finally {
+    if (conn) conn.release();
+  }
+}
+
+// Setup periodic health check to keep connections alive
+function setupConnectionHealthCheck() {
+  setInterval(async () => {
+    try {
+      const conn = await pool.getConnection();
+      await conn.ping();
+      conn.release();
+      console.log('Connection health check: OK');
+    } catch (err) {
+      console.error('Connection health check failed:', err);
+    }
+  }, 30000); // Every 30 seconds
+}
 
 async function createCommentsTableIfNotExists() {
   try {
@@ -58,32 +98,49 @@ async function addDebugComment() {
   }
 }
 
-async function getComments() {
+// Get comments with retry logic
+async function getComments(retries = 3) {
   try {
+    await validateConnection();
     const [rows] = await pool.query('SELECT * FROM comments ORDER BY created_at DESC');
     return rows;
   } catch (error) {
+    if (error.code === 'ECONNRESET' && retries > 0) {
+      console.log(`Connection reset, retrying... (${retries} attempts left)`);
+      return getComments(retries - 1);
+    }
     console.error('Error fetching comments:', error);
     throw error;
   }
 }
 
-async function addComment(name, message) {
+// Add comment with retry logic
+async function addComment(name, message, retries = 3) {
   try {
+    await validateConnection();
     const [result] = await pool.query(
       'INSERT INTO comments (name, message) VALUES (?, ?)',
       [name, message]
     );
     return { 
       id: result.insertId, 
-      name, 
-      message, 
-      created_at: new Date().toISOString() 
+      name,
+      message,
+      created_at: new Date().toISOString()
     };
   } catch (error) {
+    if (error.code === 'ECONNRESET' && retries > 0) {
+      console.log(`Connection reset, retrying... (${retries} attempts left)`);
+      return addComment(name, message, retries - 1);
+    }
     console.error('Error adding comment:', error);
     throw error;
   }
 }
 
-module.exports = { getComments, addComment, addDebugComment };
+module.exports = { 
+  getComments, 
+  addComment, 
+  addDebugComment,
+  validateConnection
+};
