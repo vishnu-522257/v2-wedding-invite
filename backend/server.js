@@ -39,20 +39,22 @@ app.get('/health', async (req, res) => {
 app.get('/api/v2/config', (req, res) => {
   res.json({
     code: 200,
-    app_name: "Wedding Invitation",
-    app_version: "1.0.0",
-    api_version: "v2",
-    status: "success",
-    tenor_key: "AIzaSyCWNPjm1GgTZ1GwjP3nXcVBMQCQNDt51Yw",
-    can_reply: true,
-    can_edit: true,
-    can_delete: true,
-    tz: "Asia/Kolkata",
-    locale: "en",
-    url: "https://wedding-invite-ll7a.onrender.com",
-    comment_url: "https://wedding-invite-ll7a.onrender.com/api/comments",
-    greeting_url: "https://wedding-invite-ll7a.onrender.com/api/comments",
-    comment_key: "bfb9cfea33ab7ae21a315fbd6f065a815d3e20ff2f007aa2ca"
+    data: {
+      app_name: "Wedding Invitation",
+      app_version: "1.0.0",
+      api_version: "v2",
+      status: "success",
+      tenor_key: "AIzaSyCWNPjm1GgTZ1GwjP3nXcVBMQCQNDt51Yw",
+      can_reply: true,
+      can_edit: true,
+      can_delete: true,
+      tz: "Asia/Kolkata",
+      locale: "en",
+      url: "https://wedding-invite-ll7a.onrender.com",
+      comment_url: "https://wedding-invite-ll7a.onrender.com/api/v2/comment",
+      greeting_url: "https://wedding-invite-ll7a.onrender.com/api/v2/greeting",
+      comment_key: "bfb9cfea33ab7ae21a315fbd6f065a815d3e20ff2f007aa2ca"
+    }
   });
 });
 
@@ -60,20 +62,22 @@ app.get('/api/v2/config', (req, res) => {
 app.get('/api/config', (req, res) => {
   res.json({
     code: 200,
-    app_name: "Wedding Invitation",
-    app_version: "1.0.0",
-    api_version: "v2",
-    status: "success",
-    tenor_key: "AIzaSyCWNPjm1GgTZ1GwjP3nXcVBMQCQNDt51Yw",
-    can_reply: true,
-    can_edit: true,
-    can_delete: true,
-    tz: "Asia/Kolkata",
-    locale: "en",
-    url: "https://wedding-invite-ll7a.onrender.com",
-    comment_url: "https://wedding-invite-ll7a.onrender.com/api/comments",
-    greeting_url: "https://wedding-invite-ll7a.onrender.com/api/comments",
-    comment_key: "bfb9cfea33ab7ae21a315fbd6f065a815d3e20ff2f007aa2ca"
+    data: {
+      app_name: "Wedding Invitation",
+      app_version: "1.0.0",
+      api_version: "v2",
+      status: "success",
+      tenor_key: "AIzaSyCWNPjm1GgTZ1GwjP3nXcVBMQCQNDt51Yw",
+      can_reply: true,
+      can_edit: true,
+      can_delete: true,
+      tz: "Asia/Kolkata",
+      locale: "en",
+      url: "https://wedding-invite-ll7a.onrender.com",
+      comment_url: "https://wedding-invite-ll7a.onrender.com/api/v2/comment",
+      greeting_url: "https://wedding-invite-ll7a.onrender.com/api/v2/greeting",
+      comment_key: "bfb9cfea33ab7ae21a315fbd6f065a815d3e20ff2f007aa2ca"
+    }
   });
 });
 
@@ -81,52 +85,62 @@ app.get('/api/config', (req, res) => {
 app.get('/api/wedding', (req, res) => {
   res.json({
     code: 200,
-    title: "Our Wedding",
-    couple: {
-      male: {
-        name: "Groom Name",
-        fullname: "Groom Full Name",
-        father: "Father of Groom",
-        mother: "Mother of Groom",
-        image: "./assets/images/cowo.webp"
+    data: {
+      title: "Our Wedding",
+      couple: {
+        male: {
+          name: "Groom Name",
+          fullname: "Groom Full Name",
+          father: "Father of Groom",
+          mother: "Mother of Groom",
+          image: "./assets/images/cowo.webp"
+        },
+        female: {
+          name: "Bride Name",
+          fullname: "Bride Full Name",
+          father: "Father of Bride",
+          mother: "Mother of Bride",
+          image: "./assets/images/cewe.webp"
+        }
       },
-      female: {
-        name: "Bride Name",
-        fullname: "Bride Full Name",
-        father: "Father of Bride",
-        mother: "Mother of Bride",
-        image: "./assets/images/cewe.webp"
-      }
-    },
-    date: {
-      akad: "2024-01-01 09:00:00",
-      resepsi: "2024-01-01 10:00:00",
-      countdown: "2024-01-01 09:30:00"
-    },
-    venue: {
-      akad: "Wedding Venue",
-      resepsi: "Wedding Venue",
-      map: "https://maps.google.com"
-    },
-    status: "success"
+      date: {
+        akad: "2024-01-01 09:00:00",
+        resepsi: "2024-01-01 10:00:00",
+        countdown: "2024-01-01 09:30:00"
+      },
+      venue: {
+        akad: "Wedding Venue",
+        resepsi: "Wedding Venue",
+        map: "https://maps.google.com"
+      },
+      status: "success"
+    }
   });
 });
 
-// V2 comment endpoint
+// FIXED: V2 comment endpoint with correct response structure
 app.get('/api/v2/comment', async (req, res) => {
   try {
     const comments = await db.getComments();
+    const defaultComments = comments.length > 0 ? comments : [
+      {
+        id: 0,
+        uuid: "system-welcome",
+        name: "System",
+        message: "Welcome to our wedding invitation! Leave your wishes here.",
+        created_at: new Date().toISOString(),
+        is_admin: true
+      }
+    ];
+    
+    // Return in the format expected by comment.js
     res.json({
       code: 200,
       status: "success",
-      data: comments.length > 0 ? comments : [
-        {
-          id: 0,
-          name: "System",
-          message: "Welcome to our wedding invitation! Leave your wishes here.",
-          created_at: new Date().toISOString()
-        }
-      ]
+      data: {
+        lists: defaultComments,
+        count: comments.length || 1
+      }
     });
   } catch (error) {
     console.error('Error getting comments:', error);
@@ -152,7 +166,11 @@ app.post('/api/v2/comment', async (req, res) => {
     res.status(201).json({
       code: 201,
       status: "success",
-      data: newComment
+      data: {
+        ...newComment,
+        uuid: `comment-${newComment.id}`,
+        own: `comment-${newComment.id}`
+      }
     });
   } catch (error) {
     console.error('Error adding comment:', error);
@@ -164,21 +182,28 @@ app.post('/api/v2/comment', async (req, res) => {
   }
 });
 
-// Greeting endpoints
+// FIXED: Greeting endpoints with correct response structure
 app.get('/api/v2/greeting', async (req, res) => {
   try {
     const comments = await db.getComments();
+    const defaultComments = comments.length > 0 ? comments : [
+      {
+        id: 0,
+        uuid: "system-welcome",
+        name: "System",
+        message: "Welcome to our wedding invitation! Leave your wishes here.",
+        created_at: new Date().toISOString(),
+        is_admin: true
+      }
+    ];
+    
     res.json({
       code: 200,
       status: "success",
-      data: comments.length > 0 ? comments : [
-        {
-          id: 0,
-          name: "System",
-          message: "Welcome to our wedding invitation! Leave your wishes here.",
-          created_at: new Date().toISOString()
-        }
-      ]
+      data: {
+        lists: defaultComments,
+        count: comments.length || 1
+      }
     });
   } catch (error) {
     console.error('Error getting greetings:', error);
@@ -204,7 +229,11 @@ app.post('/api/v2/greeting', async (req, res) => {
     res.status(201).json({
       code: 201,
       status: "success",
-      data: newComment
+      data: {
+        ...newComment,
+        uuid: `greeting-${newComment.id}`,
+        own: `greeting-${newComment.id}`
+      }
     });
   } catch (error) {
     console.error('Error adding greeting:', error);
@@ -216,11 +245,11 @@ app.post('/api/v2/greeting', async (req, res) => {
   }
 });
 
-// CRITICAL FIX: Return comments as a direct array for the /api/comments endpoint
+// Legacy endpoints for compatibility
 app.get('/api/comments', async (req, res) => {
   try {
-    const comments = await db.getComments() || [];
-    // Return just the array directly - this is the key fix for the map error
+    const comments = await db.getComments();
+    // Return just the array directly
     res.json(comments.length > 0 ? comments : [
       {
         id: 0,
@@ -235,7 +264,6 @@ app.get('/api/comments', async (req, res) => {
   }
 });
 
-// Return the new comment directly for POST requests
 app.post('/api/comments', async (req, res) => {
   try {
     const { name, message } = req.body;
