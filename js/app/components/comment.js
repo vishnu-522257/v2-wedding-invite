@@ -11,9 +11,6 @@ import { request, defaultJSON, HTTP_GET, HTTP_POST, HTTP_DELETE, HTTP_PUT, HTTP_
 
 export const comment = (() => {
 
-    // Add a secret marker for filtering comments
-    const TAG = '__uSvLts__';
-
     /**
      * @type {ReturnType<typeof storage>|null}
      */
@@ -44,52 +41,6 @@ export const comment = (() => {
             .get();
 
         return `<div class="text-center p-4 mx-0 mt-0 mb-3 bg-theme-auto rounded-4 shadow"><p class="fw-bold p-0 m-0" style="font-size: 0.95rem;">${desc}</p></div>`;
-    };
-
-    /**
-     * Helper function to process a comment by checking for TAG and removing it
-     * @param {ReturnType<typeof dto.getCommentResponse>} comment 
-     * @returns {ReturnType<typeof dto.getCommentResponse>|null}
-     */
-    const processComment = (comment) => {
-        if (!comment) return null;
-        
-        // Deep clone the comment to avoid modifying the original
-        const processed = JSON.parse(JSON.stringify(comment));
-        
-        // Check if message has our marker and remove it
-        if (processed.message && processed.message.startsWith(TAG)) {
-            processed.message = processed.message.slice(TAG.length);
-            
-            // Process nested comments if they exist
-            if (processed.comments && processed.comments.length > 0) {
-                const filteredComments = [];
-                for (const child of processed.comments) {
-                    const processedChild = processComment(child);
-                    if (processedChild) {
-                        filteredComments.push(processedChild);
-                    }
-                }
-                processed.comments = filteredComments;
-            }
-            
-            return processed;
-        } else if (processed.comments && processed.comments.length > 0) {
-            // If parent doesn't have marker but we still need to check children
-            const filteredComments = [];
-            for (const child of processed.comments) {
-                const processedChild = processComment(child);
-                if (processedChild) {
-                    filteredComments.push(processedChild);
-                }
-            }
-            processed.comments = filteredComments;
-            
-            // Only return parent if it has tagged children after filtering
-            return processed.comments.length > 0 ? processed : null;
-        }
-        
-        return null;
     };
 
     /**
@@ -249,26 +200,17 @@ export const comment = (() => {
                     await gif.remove(u);
                 }
 
-                // Process and filter comments with our TAG
-                const filteredLists = [];
-                for (const item of res.data.lists) {
-                    const processedItem = processComment(item);
-                    if (processedItem) {
-                        filteredLists.push(processedItem);
-                    }
-                }
-
-                if (filteredLists.length === 0) {
+                if (res.data.lists.length === 0) {
                     comments.innerHTML = onNullComment();
                     return res;
                 }
 
                 lastRender.length = 0;
-                lastRender.push(...traverse(filteredLists).map((i) => i.uuid));
-                showHide.set('hidden', traverse(filteredLists, showHide.get('hidden')));
+                lastRender.push(...traverse(res.data.lists).map((i) => i.uuid));
+                showHide.set('hidden', traverse(res.data.lists, showHide.get('hidden')));
 
-                let data = await card.renderContentMany(filteredLists);
-                if (filteredLists.length < pagination.getPer()) {
+                let data = await card.renderContentMany(res.data.lists);
+                if (res.data.lists.length < pagination.getPer()) {
                     data += onNullComment();
                 }
 
@@ -278,10 +220,7 @@ export const comment = (() => {
                     like.addListener(u);
                 });
 
-                // Keep original response but with filtered data
-                const filteredRes = {...res};
-                filteredRes.data = {...res.data, lists: filteredLists};
-                return filteredRes;
+                return res;
             })
             .then(async (res) => {
                 comments.dispatchEvent(new Event('comment.result'));
@@ -393,12 +332,9 @@ export const comment = (() => {
 
         const btn = util.disableButton(button);
 
-        // Add TAG to comment when updating
-        const messageWithTag = !gifIsOpen ? TAG + form.value : null;
-
         const status = await request(HTTP_PUT, `/api/comment/${owns.get(id)}?lang=${lang.getLanguage()}`)
             .token(session.getToken())
-            .body(dto.updateCommentRequest(presence ? isPresent : null, messageWithTag, gifId))
+            .body(dto.updateCommentRequest(presence ? isPresent : null, gifIsOpen ? null : form.value, gifId))
             .send(dto.statusResponse)
             .then((res) => res.data.status, () => false);
 
@@ -537,12 +473,9 @@ export const comment = (() => {
             }
         }
 
-        // Add TAG to the comment when sending
-        const messageWithTag = !gifIsOpen ? TAG + form.value : null;
-
         const response = await request(HTTP_POST, `/api/comment?lang=${lang.getLanguage()}`)
             .token(session.getToken())
-            .body(dto.postCommentRequest(id, nameValue, isPresence, messageWithTag, gifId))
+            .body(dto.postCommentRequest(id, nameValue, isPresence, gifIsOpen ? null : form.value, gifId))
             .send(dto.getCommentResponse)
             .then((res) => res, () => null);
 
@@ -580,11 +513,6 @@ export const comment = (() => {
 
         if (gifIsOpen && gifId) {
             gifCancel.click();
-        }
-
-        // Make sure to remove the tag from the response for display
-        if (response.data.message && response.data.message.startsWith(TAG)) {
-            response.data.message = response.data.message.slice(TAG.length);
         }
 
         if (!id) {
@@ -758,5 +686,4 @@ export const comment = (() => {
         showMore,
         showOrHide,
     };
-
 })();
