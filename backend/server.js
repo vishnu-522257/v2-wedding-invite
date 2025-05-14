@@ -38,8 +38,8 @@ app.get('/health', async (req, res) => {
 // Updated config endpoint with the correct response structure
 app.get('/api/v2/config', (req, res) => {
   res.json({
-    code: 200, // Add this code property that the frontend expects
-    data: {    // Wrap the config in a data property
+    code: 200,
+    data: {
       app_name: "Wedding Invitation",
       app_version: "1.0.0",
       api_version: "v2",
@@ -61,8 +61,8 @@ app.get('/api/v2/config', (req, res) => {
 // Also update the non-versioned config endpoint
 app.get('/api/config', (req, res) => {
   res.json({
-    code: 200, // Add this code property
-    data: {    // Wrap the config in a data property
+    code: 200,
+    data: {
       app_name: "Wedding Invitation",
       app_version: "1.0.0",
       api_version: "v2",
@@ -222,41 +222,57 @@ app.post('/api/v2/greeting', async (req, res) => {
   }
 });
 
-// Updated endpoint to match what the frontend expects
+// UPDATED: Modified to match the structure expected by the frontend
 app.get('/api/comments', async (req, res) => {
   try {
     const comments = await db.getComments();
-    // If there are no comments, return a default comment
-    if (comments.length === 0) {
-      return res.json([
+    // Return with code and data wrapper to match other endpoints
+    res.json({
+      code: 200,
+      data: comments.length > 0 ? comments : [
         {
           id: 0,
           name: "System",
           message: "Welcome to our wedding invitation! Leave your wishes here.",
           created_at: new Date().toISOString()
         }
-      ]);
-    }
-    // Return just the array of comments
-    res.json(comments);
+      ]
+    });
   } catch (error) {
     console.error('Error getting comments:', error);
-    res.status(500).json({ message: error.message || "Failed to retrieve comments" });
+    res.status(500).json({ 
+      code: 500,
+      status: "error", 
+      message: error.message || "Failed to retrieve comments" 
+    });
   }
 });
 
+// UPDATED: Modified to match the structure expected by the frontend
 app.post('/api/comments', async (req, res) => {
   try {
     const { name, message } = req.body;
     if (!name || !message) {
-      return res.status(400).json({ message: 'Name and message are required' });
+      return res.status(400).json({ 
+        code: 400,
+        status: "error", 
+        message: 'Name and message are required' 
+      });
     }
     const newComment = await db.addComment(name, message);
-    // Return just the comment object
-    res.status(201).json(newComment);
+    // Return with code and data wrapper
+    res.status(201).json({
+      code: 201,
+      status: "success",
+      data: newComment
+    });
   } catch (error) {
     console.error('Error adding comment:', error);
-    res.status(500).json({ message: error.message || "Failed to add comment" });
+    res.status(500).json({ 
+      code: 500,
+      status: "error", 
+      message: error.message || "Failed to add comment" 
+    });
   }
 });
 
