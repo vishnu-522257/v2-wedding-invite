@@ -177,3 +177,18 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+
+// Add this to your server.js
+app.get('/api/wedding-config', (req, res) => {
+  res.json({
+    title: "Our Wedding",
+    bride: "Bride Name",
+    groom: "Groom Name",
+    date: "2024-01-01",
+    time: "09:30:00",
+    venue: "Wedding Venue",
+    status: "success"
+  });
+});
+
