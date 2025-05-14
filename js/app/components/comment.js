@@ -9,6 +9,8 @@ import { storage } from '../../common/storage.js';
 import { session } from '../../common/session.js';
 import { request, defaultJSON, HTTP_GET, HTTP_POST, HTTP_DELETE, HTTP_PUT, HTTP_STATUS_CREATED } from '../../connection/request.js';
 
+const TAG = '[[MYTAG]]';
+
 export const comment = (() => {
 
     /**
@@ -473,11 +475,28 @@ export const comment = (() => {
             }
         }
 
+        // const response = await request(HTTP_POST, `/api/comment?lang=${lang.getLanguage()}`)
+        //     .token(session.getToken())
+        //     .body(dto.postCommentRequest(id, nameValue, isPresence, gifIsOpen ? null : form.value, gifId))
+        //     .send(dto.getCommentResponse)
+        //     .then((res) => res, () => null);
+
+        // UPD
+        //Add const TAG = '[[MYTAG]]'; after imports.
+
+
         const response = await request(HTTP_POST, `/api/comment?lang=${lang.getLanguage()}`)
-            .token(session.getToken())
-            .body(dto.postCommentRequest(id, nameValue, isPresence, gifIsOpen ? null : form.value, gifId))
-            .send(dto.getCommentResponse)
-            .then((res) => res, () => null);
+          .token(session.getToken())
+          .body(dto.postCommentRequest(
+            id,
+            nameValue,
+            isPresence,
+            gifIsOpen ? null : `${TAG}${form.value}`,
+            gifId
+          ))
+          .send(dto.getCommentResponse)
+          .then((res) => res, () => null);
+
 
         if (name) {
             name.disabled = false;
