@@ -6,6 +6,9 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Add debug comment on startup
+db.addDebugComment();
+
 // Configure CORS
 app.use(cors({
   origin: '*',
@@ -31,13 +34,30 @@ app.get('/api/v2/config', (req, res) => {
   });
 });
 
+// Also add a non-versioned config endpoint
+app.get('/api/config', (req, res) => {
+  res.json({
+    app_name: "Wedding Invitation",
+    app_version: "1.0.0",
+    api_version: "v2",
+    status: "success"
+  });
+});
+
 // Original v2 API endpoints
 app.get('/api/v2/comment', async (req, res) => {
   try {
     const comments = await db.getComments();
     res.json({
       status: "success",
-      data: comments
+      data: comments.length > 0 ? comments : [
+        {
+          id: 0,
+          name: "System",
+          message: "Welcome to our wedding invitation! Leave your wishes here.",
+          created_at: new Date().toISOString()
+        }
+      ]
     });
   } catch (error) {
     console.error('Error getting comments:', error);
@@ -68,7 +88,14 @@ app.get('/api/v2/greeting', async (req, res) => {
     const comments = await db.getComments();
     res.json({
       status: "success",
-      data: comments
+      data: comments.length > 0 ? comments : [
+        {
+          id: 0,
+          name: "System",
+          message: "Welcome to our wedding invitation! Leave your wishes here.",
+          created_at: new Date().toISOString()
+        }
+      ]
     });
   } catch (error) {
     console.error('Error getting greetings:', error);
@@ -93,11 +120,22 @@ app.post('/api/v2/greeting', async (req, res) => {
   }
 });
 
-// NEW ENDPOINTS to match what the frontend expects
+// Updated endpoint to match what the frontend expects
 app.get('/api/comments', async (req, res) => {
   try {
     const comments = await db.getComments();
-    // Return just the array of comments, not wrapped in an object
+    // If there are no comments, return a default comment
+    if (comments.length === 0) {
+      return res.json([
+        {
+          id: 0,
+          name: "System",
+          message: "Welcome to our wedding invitation! Leave your wishes here.",
+          created_at: new Date().toISOString()
+        }
+      ]);
+    }
+    // Return just the array of comments
     res.json(comments);
   } catch (error) {
     console.error('Error getting comments:', error);
@@ -112,12 +150,28 @@ app.post('/api/comments', async (req, res) => {
       return res.status(400).json({ message: 'Name and message are required' });
     }
     const newComment = await db.addComment(name, message);
-    // Return just the comment object, not wrapped in a status object
+    // Return just the comment object
     res.status(201).json(newComment);
   } catch (error) {
     console.error('Error adding comment:', error);
     res.status(500).json({ message: error.message });
   }
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  
+  if (res.headersSent) {
+    return next(err);
+  }
+  
+  res.status(err.statusCode || 500).json({
+    status: "error",
+    message: err.message || "Internal Server Error",
+    path: req.path,
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.listen(PORT, () => {
