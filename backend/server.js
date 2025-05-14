@@ -80,7 +80,6 @@ app.get('/api/config', (req, res) => {
 // Wedding data endpoint
 app.get('/api/wedding', (req, res) => {
   res.json({
-    code: 200,
     title: "Our Wedding",
     couple: {
       male: {
@@ -117,6 +116,7 @@ app.get('/api/v2/comment', async (req, res) => {
   try {
     const comments = await db.getComments();
     res.json({
+      code: 200,
       status: "success",
       data: comments.length > 0 ? comments : [
         {
@@ -130,6 +130,7 @@ app.get('/api/v2/comment', async (req, res) => {
   } catch (error) {
     console.error('Error getting comments:', error);
     res.status(500).json({ 
+      code: 500,
       status: "error", 
       message: error.message || "Failed to retrieve comments" 
     });
@@ -140,16 +141,22 @@ app.post('/api/v2/comment', async (req, res) => {
   try {
     const { name, message } = req.body;
     if (!name || !message) {
-      return res.status(400).json({ status: "error", message: 'Name and message are required' });
+      return res.status(400).json({ 
+        code: 400,
+        status: "error", 
+        message: 'Name and message are required' 
+      });
     }
     const newComment = await db.addComment(name, message);
     res.status(201).json({
+      code: 201,
       status: "success",
       data: newComment
     });
   } catch (error) {
     console.error('Error adding comment:', error);
     res.status(500).json({ 
+      code: 500,
       status: "error", 
       message: error.message || "Failed to add comment" 
     });
@@ -161,6 +168,7 @@ app.get('/api/v2/greeting', async (req, res) => {
   try {
     const comments = await db.getComments();
     res.json({
+      code: 200,
       status: "success",
       data: comments.length > 0 ? comments : [
         {
@@ -174,6 +182,7 @@ app.get('/api/v2/greeting', async (req, res) => {
   } catch (error) {
     console.error('Error getting greetings:', error);
     res.status(500).json({ 
+      code: 500,
       status: "error", 
       message: error.message || "Failed to retrieve greetings" 
     });
@@ -184,23 +193,29 @@ app.post('/api/v2/greeting', async (req, res) => {
   try {
     const { name, message } = req.body;
     if (!name || !message) {
-      return res.status(400).json({ status: "error", message: 'Name and message are required' });
+      return res.status(400).json({ 
+        code: 400,
+        status: "error", 
+        message: 'Name and message are required' 
+      });
     }
     const newComment = await db.addComment(name, message);
     res.status(201).json({
+      code: 201,
       status: "success",
       data: newComment
     });
   } catch (error) {
     console.error('Error adding greeting:', error);
     res.status(500).json({ 
+      code: 500,
       status: "error", 
       message: error.message || "Failed to add greeting" 
     });
   }
 });
 
-// UPDATED: Return comments as a direct array (not wrapped in an object)
+// CRITICAL FIX: Return comments as a direct array (not wrapped in an object)
 app.get('/api/comments', async (req, res) => {
   try {
     const comments = await db.getComments();
@@ -219,7 +234,7 @@ app.get('/api/comments', async (req, res) => {
   }
 });
 
-// UPDATED: Return the comment directly (not wrapped in an object)
+// CRITICAL FIX: Return the comment directly (not wrapped in an object)
 app.post('/api/comments', async (req, res) => {
   try {
     const { name, message } = req.body;
@@ -250,6 +265,20 @@ app.use((err, req, res, next) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Add this function to db.js if it doesn't exist
+if (!db.validateConnection) {
+  db.validateConnection = async function() {
+    try {
+      const connection = await pool.getConnection();
+      connection.release();
+      return true;
+    } catch (error) {
+      console.error('Connection validation failed:', error);
+      return false;
+    }
+  };
+}
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
