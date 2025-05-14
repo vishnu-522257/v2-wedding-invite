@@ -42,6 +42,22 @@ async function createCommentsTableIfNotExists() {
   }
 }
 
+async function addDebugComment() {
+  try {
+    // Check if debug comment already exists
+    const [existing] = await pool.query('SELECT * FROM comments WHERE name = ? LIMIT 1', ['System']);
+    if (existing.length === 0) {
+      await pool.query(
+        'INSERT INTO comments (name, message) VALUES (?, ?)',
+        ['System', 'Welcome to our wedding invitation! Leave your wishes here.']
+      );
+      console.log('Debug comment added successfully');
+    }
+  } catch (error) {
+    console.error('Error adding debug comment:', error);
+  }
+}
+
 async function getComments() {
   try {
     const [rows] = await pool.query('SELECT * FROM comments ORDER BY created_at DESC');
@@ -70,4 +86,4 @@ async function addComment(name, message) {
   }
 }
 
-module.exports = { getComments, addComment };
+module.exports = { getComments, addComment, addDebugComment };
