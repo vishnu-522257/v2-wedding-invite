@@ -9,7 +9,7 @@ import { storage } from '../../common/storage.js';
 import { session } from '../../common/session.js';
 import { request, defaultJSON, HTTP_GET, HTTP_POST, HTTP_DELETE, HTTP_PUT, HTTP_STATUS_CREATED } from '../../connection/request.js';
 
-const TAG = '[[MYTAG]]';
+const TAG = '[USVLTS]';
 
 export const comment = (() => {
 
