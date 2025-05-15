@@ -215,9 +215,9 @@ export const guest = (() => {
     return url.toString();
     };
 
-        url.search = data.toString();
-        document.querySelector('#home button')?.addEventListener('click', () => window.open(url, '_blank'));
-    };
+    //     url.search = data.toString();
+    //     document.querySelector('#home button')?.addEventListener('click', () => window.open(url, '_blank'));
+    // };
 
     /**
      * @returns {object}
