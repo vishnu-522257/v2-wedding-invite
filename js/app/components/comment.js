@@ -9,7 +9,7 @@ import { storage } from '../../common/storage.js';
 import { session } from '../../common/session.js';
 import { request, defaultJSON, HTTP_GET, HTTP_POST, HTTP_DELETE, HTTP_PUT, HTTP_STATUS_CREATED } from '../../connection/request.js';
 
-const TAG = '[USVLTS]';
+const TAG = '[USV]';
 
 export const comment = (() => {
 
@@ -201,6 +201,19 @@ export const comment = (() => {
                 for (const u of lastRender) {
                     await gif.remove(u);
                 }
+                //console.log(res.data.lists);
+                // Filter only comments containing [USVLTS]
+                res.data.lists = res.data.lists
+                .filter(item => typeof item.comment === 'string' && item.comment.includes('[USV]'))
+                .map(item => {
+                    return {
+                    ...item,
+                    comment: item.comment.replace('[USV]', ' ')
+                    };
+                });
+
+
+                console.log(res.data.lists);
 
                 if (res.data.lists.length === 0) {
                     comments.innerHTML = onNullComment();
@@ -215,6 +228,8 @@ export const comment = (() => {
                 if (res.data.lists.length < pagination.getPer()) {
                     data += onNullComment();
                 }
+                // console.log(data);
+                // console.log("BREAKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK");
 
                 util.safeInnerHTML(comments, data);
 
