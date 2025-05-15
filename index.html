@@ -667,7 +667,7 @@
 </script>
 
 
-<script>
+<!-- <script>
     document.addEventListener('DOMContentLoaded', function() {
       // Wait a short time to ensure comments are rendered (adjust if needed)
       setTimeout(function() {
@@ -681,7 +681,8 @@
         commentDivs.forEach(function(div) {
           // Find the message text (adjust for your structure)
           let message = div.innerText || div.textContent;
-          if (!message.startsWith(TAG)) {
+          if (!message.includes(TAG)) {
+            //console.log(message)
             div.style.display = 'none'; // Hide comments without the tag
           } else {
             // Remove the tag from visible comments
@@ -690,7 +691,8 @@
         });
       }, 3000); // Adjust delay as needed to match when comments are rendered
     });
-</script>
+
+</script> -->
 
 
 </body>
