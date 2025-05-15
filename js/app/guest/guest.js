@@ -221,7 +221,7 @@ export const guest = (() => {
     
             url.search = data.toString();
             document.querySelector('#home button')?.addEventListener('click', () => window.open(url, '_blank'));
-        };
+        });
 
     
 
