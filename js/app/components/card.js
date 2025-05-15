@@ -152,7 +152,7 @@ export const card = (() => {
      */
     const renderHeader = (c) => {
         if (c.is_parent) {
-            return `class="bg-theme-auto shadow p-3 mx-0 mt-0 mb-3 rounded-4"`;
+            return `class="comment uday bg-theme-auto shadow p-3 mx-0 mt-0 mb-3 rounded-4"`;
         }
 
         return `class="${!showHide.get('hidden').find((i) => i.uuid === c.uuid)['show'] ? 'd-none' : ''} overflow-x-scroll mw-100 border-start bg-theme-auto py-2 ps-2 pe-0 my-2 ms-2 me-0"`;
