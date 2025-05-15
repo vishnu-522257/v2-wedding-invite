@@ -196,21 +196,24 @@ export const guest = (() => {
      * @returns {void}
      */
     const buildGoogleCalendar = () => {
-        /**
-         * @param {string} d 
-         * @returns {string}
-         */
-        const formatDate = (d) => (new Date(d + ':00Z')).toISOString().replace(/[-:]/g, '').split('.').shift();
+    /**
+     * @param {string} d
+     * @returns {string}
+     */
+    const formatDate = (d) => (new Date(d + ':00+05:30')).toISOString().replace(/[-:]/g, '').split('.').shift();
 
-        const url = new URL('https://calendar.google.com/calendar/render');
-        const data = new URLSearchParams({
-            action: 'TEMPLATE',
-            text: 'The Wedding of Wahyu and Riski',
-            dates: `${formatDate('2023-03-15 10:00')}/${formatDate('2023-03-15 11:00')}`,
-            details: 'Tanpa mengurangi rasa hormat, kami mengundang Anda untuk berkenan menghadiri acara pernikahan kami. Terima kasih atas perhatian dan doa restu Anda, yang menjadi kebahagiaan serta kehormatan besar bagi kami.',
-            location: 'RT 10 RW 02, Desa Pajerukan, Kec. Kalibagor, Kab. Banyumas, Jawa Tengah 53191.',
-            ctz: config.get('tz'),
-        });
+    const url = new URL('https://calendar.google.com/calendar/render');
+    const data = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: 'The Wedding of Navya Sree and Gowtham',
+        dates: `${formatDate('2025-05-23 21:27')}/${formatDate('2025-05-23 23:00')}`,
+        details: 'With the divine blessings of the Almighty, Sri. Suggula Durga Prasad & Smt. Sailaja cordially invite you to grace the wedding ceremony of their beloved daughter Navya Sree with Gowtham, beloved son of Sri. Tatavarthi Balaji & Smt. Mamatha. Venue: Amaravathi Kalyana Mandapam, Donepudi – 522324. We look forward to your presence and blessings. Invitation by Uday Suggula (brother of the bride).',
+        location: 'Amaravathi Kalyana Mandapam, Donepudi – 522324',
+        ctz: 'Asia/India/Andhra Pradesh/Guntur',
+    });
+    url.search = data.toString();
+    return url.toString();
+    };
 
         url.search = data.toString();
         document.querySelector('#home button')?.addEventListener('click', () => window.open(url, '_blank'));
