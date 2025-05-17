@@ -8,8 +8,7 @@ import { lang } from '../../common/language.js';
 import { storage } from '../../common/storage.js';
 import { session } from '../../common/session.js';
 import { offline } from '../../common/offline.js';
-// V2: Comment section removed - removed this import
-// import { comment } from '../components/comment.js';
+import { comment } from '../components/comment.js';
 import * as confetti from '../../libs/confetti.js';
 
 export const guest = (() => {
@@ -196,20 +195,30 @@ export const guest = (() => {
     /**
      * @returns {void}
      */
-    const buildGoogleCalendar = () => {
-        const url = new URL('https://calendar.google.com/calendar/render');
-        const data = new URLSearchParams({
-            action: 'TEMPLATE',
-            text: 'The Wedding of Navya Sree and Gowtham',
-            dates: `20250523T200000/20250523T220000`, // 8:00 PM – 10:00 PM IST
-            details: 'With the divine blessings of the Almighty, Sri. Suggula Durga Prasad & Smt. Sailaja cordially invite you to grace the wedding ceremony of their beloved daughter Navya Sree with Gowtham, beloved son of Sri. Tatavarthi Balaji & Smt. Mamatha. Venue: Amaravathi Kalyana Mandapam, Donepudi – 522324. We look forward to your presence and blessings. Invitation by Uday Suggula (brother of the bride)',
-            location: 'Amaravathi Kalyana Mandapam, Donepudi – 522324',
-            ctz: 'Asia/Kolkata',
-        });
+    
 
-        url.search = data.toString();
-        document.querySelector('#home button')?.addEventListener('click', () => window.open(url, '_blank'));
-    };
+
+        const buildGoogleCalendar = () => {
+    const url = new URL('https://calendar.google.com/calendar/render');
+    const data = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: 'The Wedding of Navya Sree and Gowtham',
+        dates: `20250523T200000/20250523T220000`, // 8:00 PM – 10:00 PM IST
+        details: 'With the divine blessings of the Almighty, Sri. Suggula Durga Prasad & Smt. Sailaja cordially invite you to grace the wedding ceremony of their beloved daughter Navya Sree with Gowtham, beloved son of Sri. Tatavarthi Balaji & Smt. Mamatha. Venue: Amaravathi Kalyana Mandapam, Donepudi – 522324. We look forward to your presence and blessings. Invitation by Uday Suggula (brother of the bride)',
+        location: 'Amaravathi Kalyana Mandapam, Donepudi – 522324',
+        ctz: 'Asia/Kolkata',
+    });
+
+    url.search = data.toString();
+    document.querySelector('#home button')?.addEventListener('click', () => window.open(url, '_blank'));
+};
+
+
+
+
+
+
+
 
     /**
      * @returns {object}
@@ -257,10 +266,9 @@ export const guest = (() => {
                 : abs.classList.replace('d-flex', 'd-none');
         });
 
-        // V2: Comment section removed - removed presence form handling
-        // if (information.has('presence')) {
-        //     document.getElementById('form-presence').value = information.get('presence') ? '1' : '2';
-        // }
+        if (information.has('presence')) {
+            document.getElementById('form-presence').value = information.get('presence') ? '1' : '2';
+        }
 
         if (information.get('info')) {
             document.getElementById('information')?.remove();
@@ -299,32 +307,46 @@ export const guest = (() => {
             img.download(e.currentTarget.getAttribute('data-src'));
         });
 
-        // V2: Simplified token check since comments are removed
-        img.load();
-        aud.load();
-        cfi.load(document.body.getAttribute('data-confetti') === 'true');
+        if (!token || token.length <= 0) {
+            img.load();
+            aud.load();
+            cfi.load(document.body.getAttribute('data-confetti') === 'true');
 
-        // V2: Removed entire comment-related token check block
-        // if (token && token.length > 0) {
-        //     progress.add();
-        //     progress.add();
-        //     if (!img.hasDataSrc()) {
-        //         img.load();
-        //     }
-        //     const loader = () => session.guest(params.get('k') ?? token).then(({ data }) => {
-        //         progress.complete('config');
-        //         if (img.hasDataSrc()) {
-        //             img.load();
-        //         }
-        //         aud.load();
-        //         comment.init();
-        //         cfi.load(data.is_confetti_animation);
-        //         comment.show()
-        //             .then(() => progress.complete('comment'))
-        //             .catch(() => progress.invalid('comment'));
-        //     }).catch(() => progress.invalid('config'));
-        //     window.addEventListener('load', loader);
-        // }
+            document.getElementById('comment')?.remove();
+            document.querySelector('a.nav-link[href="#comment"]')?.closest('li.nav-item')?.remove();
+        }
+
+        if (token && token.length > 0) {
+            // add 2 progress for config and comment.
+            // before img.load();
+            progress.add();
+            progress.add();
+
+            // if don't have data-src.
+            if (!img.hasDataSrc()) {
+                img.load();
+            }
+
+            // fetch after document is loaded.
+            const loader = () => session.guest(params.get('k') ?? token).then(({ data }) => {
+                progress.complete('config');
+
+                if (img.hasDataSrc()) {
+                    img.load();
+                }
+
+                aud.load();
+                comment.init();
+                cfi.load(data.is_confetti_animation);
+
+                comment.show()
+                    .then(() => progress.complete('comment'))
+                    .catch(() => progress.invalid('comment'));
+
+            }).catch(() => progress.invalid('config'));
+
+            window.addEventListener('load', loader);
+        }
     };
 
     /**
@@ -339,8 +361,7 @@ export const guest = (() => {
             storage('owns').clear();
             storage('likes').clear();
             storage('session').clear();
-            // V2: Comment section removed - removed comment storage
-            // storage('comment').clear();
+            storage('comment').clear();
         }
 
         window.addEventListener('DOMContentLoaded', domLoaded);
@@ -348,8 +369,7 @@ export const guest = (() => {
         return {
             util,
             theme,
-            // V2: Comment section removed - removed comment from exports
-            // comment,
+            comment,
             guest: {
                 open,
                 modal,
